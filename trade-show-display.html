@@ -23,7 +23,7 @@
       flex-direction: column;
       align-items: center;
       justify-content: space-between;
-      padding: 2.5vh 3vw;
+      padding: 1.5vh 3vw;
     }
 
     /* ── Logos ── */
@@ -52,7 +52,7 @@
       text-transform: uppercase;
     }
 
-    /* ── Centre stage ── */
+    /* ── Centre ── */
     .center {
       flex: 1;
       display: flex;
@@ -60,13 +60,17 @@
       justify-content: center;
     }
 
+    /* ── Main SVG (square — ring drives the aspect ratio) ── */
     .dog {
-      width: min(42vw, 62vh);
+      width: min(90vw, 78vh);
       height: auto;
       overflow: visible;
     }
 
-    /* ── Blink animation ── */
+    /* ── Battery arc animates smoothly on level change ── */
+    #battery-arc { transition: stroke-dashoffset 1.2s ease; }
+
+    /* ── Eye blink ── */
     .eye-group {
       transform-box: fill-box;
       transform-origin: center;
@@ -79,75 +83,124 @@
       94%           { transform: scaleY(1); }
     }
 
-    /* right eye lags ~55 ms for a natural feel */
     .eye-l { animation: blink 4.8s ease-in-out infinite; }
     .eye-r { animation: blink 4.8s ease-in-out infinite; animation-delay: 55ms; }
 
-    /* ── Battery badge ── */
-    #batt {
-      position: fixed;
-      top: 1.2vh;
-      right: 1.5vw;
-      display: flex;
-      align-items: center;
-      gap: 0.25em;
-      padding: 0.4em 0.85em;
-      border-radius: 999px;
-      background: rgba(255, 255, 255, 0.12);
-      border: 1px solid rgba(255, 255, 255, 0.14);
-      color: #ffffff;
-      font-family: Arial, sans-serif;
-      font-size: clamp(10px, 1.6vh, 16px);
-      font-weight: 600;
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
-      z-index: 999;
-      line-height: 1;
+    /* ── Nose: dark at rest → orange + glowing pulse when charging ── */
+    #nose {
+      fill: #2a2a2a;
+      transition: fill 0.8s ease;
     }
 
-    #bolt { color: #F26522; display: none; }
-    #bolt.on { display: inline; }
+    .charging-active #nose {
+      fill: #F26522;
+      filter: url(#nose-glow);
+      animation: nose-pulse 2.5s ease-in-out infinite;
+    }
+
+    @keyframes nose-pulse {
+      0%, 100% { opacity: 1; }
+      50%       { opacity: 0.38; }
+    }
+
+    /* ── "SOLAR CHARGING" fades in only when charging ── */
+    #charge-label {
+      opacity: 0;
+      transition: opacity 0.9s ease;
+    }
+
+    .charging-active #charge-label { opacity: 1; }
   </style>
 </head>
 <body>
-
-  <!-- Battery badge (top-right, fixed) -->
-  <div id="batt">
-    <span id="bolt">&#9889;</span>
-    <span id="pct">–</span>
-  </div>
 
   <!-- Top logo: Bajada New Energy -->
   <div class="logo top">
     <img
       src="bne-logo.png"
       alt="Bajada New Energy"
-      onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'logo-text', textContent: 'Bajada New Energy'}))"
+      onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-text',textContent:'Bajada New Energy'}))"
     >
   </div>
 
-  <!-- Dog face: eyes + nose only, no outline -->
+  <!-- ── Everything in one SVG: ring + ears + face + battery readout ── -->
   <div class="center">
-    <svg class="dog" viewBox="0 0 320 190" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <svg id="face-svg" class="dog" viewBox="0 0 440 440"
+         xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 
-      <!-- Left eye -->
+      <defs>
+        <!-- Soft glow for nose when solar-charging -->
+        <filter id="nose-glow" x="-70%" y="-70%" width="240%" height="240%">
+          <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
+          <feMerge>
+            <feMergeNode in="blur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      <!-- ── Battery ring ── -->
+      <!-- Track (dim background circle) -->
+      <circle cx="220" cy="220" r="200"
+              fill="none"
+              stroke="rgba(255,255,255,0.07)"
+              stroke-width="10"/>
+
+      <!-- Progress arc: starts at 12 o'clock, fills clockwise -->
+      <!-- Circumference: 2π × 200 ≈ 1257 -->
+      <circle id="battery-arc"
+              cx="220" cy="220" r="200"
+              fill="none"
+              stroke="#F26522"
+              stroke-width="10"
+              stroke-linecap="round"
+              stroke-dasharray="1257 1257"
+              stroke-dashoffset="1257"
+              transform="rotate(-90 220 220)"/>
+
+      <!-- ── Ears (peek above the ring) ── -->
+      <rect x="106" y="18" width="46" height="90" rx="22"
+            fill="#ffffff"
+            transform="rotate(-18 129 63)"/>
+
+      <rect x="288" y="18" width="46" height="90" rx="22"
+            fill="#ffffff"
+            transform="rotate(18 311 63)"/>
+
+      <!-- ── Eyes ── -->
       <g class="eye-group eye-l">
-        <ellipse cx="95"  cy="76" rx="34" ry="43" fill="#ffffff"/>
-        <ellipse cx="98"  cy="82" rx="15" ry="20" fill="#111111"/>
-        <ellipse cx="89"  cy="67" rx="7"  ry="6"  fill="#ffffff" opacity="0.65"/>
+        <rect x="108" y="118" width="88" height="124" rx="44" fill="#ffffff"/>
       </g>
 
-      <!-- Right eye (mirrors left, 55 ms blink lag) -->
       <g class="eye-group eye-r">
-        <ellipse cx="225" cy="76" rx="34" ry="43" fill="#ffffff"/>
-        <ellipse cx="228" cy="82" rx="15" ry="20" fill="#111111"/>
-        <ellipse cx="219" cy="67" rx="7"  ry="6"  fill="#ffffff" opacity="0.65"/>
+        <rect x="244" y="118" width="88" height="124" rx="44" fill="#ffffff"/>
       </g>
 
-      <!-- Nose: wide rounded ellipse in BNE orange -->
-      <ellipse cx="160" cy="155" rx="27" ry="17" fill="#F26522"/>
-      <!-- Nose gloss highlight -->
-      <ellipse cx="152" cy="147" rx="8"  ry="5"  fill="#FF9B60" opacity="0.45"/>
+      <!-- ── Nose: heart shape — dark at rest, orange + pulse when charging ── -->
+      <path id="nose"
+            d="M 220 312
+               C 209 303 185 297 185 284
+               C 185 274 196 270 220 277
+               C 244 270 255 274 255 284
+               C 255 297 231 303 220 312 Z"/>
+
+      <!-- ── Battery readout (inside ring, below nose) ── -->
+      <text id="pct-text"
+            x="220" y="370"
+            text-anchor="middle"
+            font-family="Arial, sans-serif"
+            font-size="44"
+            font-weight="700"
+            fill="#ffffff">–%</text>
+
+      <text id="charge-label"
+            x="220" y="400"
+            text-anchor="middle"
+            font-family="Arial, sans-serif"
+            font-size="16"
+            font-weight="600"
+            letter-spacing="2.5"
+            fill="#F26522">SOLAR CHARGING</text>
 
     </svg>
   </div>
@@ -157,18 +210,20 @@
     <img
       src="ki-logo.png"
       alt="Kingswell Innovation"
-      onerror="this.replaceWith(Object.assign(document.createElement('span'), {className: 'logo-text', textContent: 'Kingswell Innovation'}))"
+      onerror="this.replaceWith(Object.assign(document.createElement('span'),{className:'logo-text',textContent:'Kingswell Innovation'}))"
     >
   </div>
 
   <script>
-    // Battery Status API — event-driven, no polling
-    const pctEl  = document.getElementById('pct');
-    const boltEl = document.getElementById('bolt');
+    const svg    = document.getElementById('face-svg');
+    const arc    = document.getElementById('battery-arc');
+    const pctTxt = document.getElementById('pct-text');
+    const CIRC   = 2 * Math.PI * 200; // ≈ 1257
 
     function render(b) {
-      pctEl.textContent = Math.round(b.level * 100) + '%';
-      boltEl.classList.toggle('on', b.charging);
+      pctTxt.textContent = Math.round(b.level * 100) + '%';
+      arc.style.strokeDashoffset = CIRC * (1 - b.level);
+      svg.classList.toggle('charging-active', b.charging);
     }
 
     if (navigator.getBattery) {
@@ -178,9 +233,9 @@
           b.addEventListener('levelchange',    () => render(b));
           b.addEventListener('chargingchange', () => render(b));
         })
-        .catch(() => { pctEl.textContent = 'N/A'; });
+        .catch(() => { pctTxt.textContent = 'N/A'; });
     } else {
-      pctEl.textContent = 'N/A';
+      pctTxt.textContent = 'N/A';
     }
   </script>
 
