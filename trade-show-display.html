@@ -86,30 +86,53 @@
     .eye-l { animation: blink 4.8s ease-in-out infinite; }
     .eye-r { animation: blink 4.8s ease-in-out infinite; animation-delay: 55ms; }
 
-    /* ── Nose: dark at rest → orange + glowing pulse when charging ── */
-    #nose {
+    /* ── Muzzle: color is set here, shape comes from nose.png mask ── */
+    #muzzle-fill {
       fill: #2a2a2a;
       transition: fill 0.8s ease;
     }
 
-    .charging-active #nose {
-      fill: #F26522;
+    body.charging-active #muzzle {
       filter: url(#nose-glow);
       animation: nose-pulse 2.5s ease-in-out infinite;
     }
+
+    body.charging-active #muzzle-fill { fill: #F26522; }
 
     @keyframes nose-pulse {
       0%, 100% { opacity: 1; }
       50%       { opacity: 0.38; }
     }
 
-    /* ── "SOLAR CHARGING" fades in only when charging ── */
+    /* ── Battery readout below the ring ── */
+    .battery-info {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 0.3em;
+      flex-shrink: 0;
+      padding: 0.5vh 0 1vh;
+    }
+
+    #pct-text {
+      font-family: Arial, sans-serif;
+      font-size: clamp(22px, 5.5vh, 52px);
+      font-weight: 700;
+      color: #ffffff;
+      line-height: 1;
+    }
+
     #charge-label {
+      font-family: Arial, sans-serif;
+      font-size: clamp(9px, 1.5vh, 14px);
+      font-weight: 600;
+      letter-spacing: 0.18em;
+      color: #F26522;
       opacity: 0;
       transition: opacity 0.9s ease;
     }
 
-    .charging-active #charge-label { opacity: 1; }
+    body.charging-active #charge-label { opacity: 1; }
   </style>
 </head>
 <body>
@@ -129,7 +152,7 @@
          xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
 
       <defs>
-        <!-- Soft glow for nose when solar-charging -->
+        <!-- Soft glow for muzzle when solar-charging -->
         <filter id="nose-glow" x="-70%" y="-70%" width="240%" height="240%">
           <feGaussianBlur in="SourceGraphic" stdDeviation="14" result="blur"/>
           <feMerge>
@@ -137,6 +160,11 @@
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
+        <!-- Shape mask: uses nose.png alpha channel directly -->
+        <mask id="nose-mask" style="mask-type:alpha">
+          <image href="nose.png" x="155" y="243" width="130" height="100"
+                 preserveAspectRatio="xMidYMid meet"/>
+        </mask>
       </defs>
 
       <!-- ── Battery ring ── -->
@@ -158,15 +186,6 @@
               stroke-dashoffset="1257"
               transform="rotate(-90 220 220)"/>
 
-      <!-- ── Ears (peek above the ring) ── -->
-      <rect x="106" y="18" width="46" height="90" rx="22"
-            fill="#ffffff"
-            transform="rotate(-18 129 63)"/>
-
-      <rect x="288" y="18" width="46" height="90" rx="22"
-            fill="#ffffff"
-            transform="rotate(18 311 63)"/>
-
       <!-- ── Eyes ── -->
       <g class="eye-group eye-l">
         <rect x="108" y="118" width="88" height="124" rx="44" fill="#ffffff"/>
@@ -176,33 +195,20 @@
         <rect x="244" y="118" width="88" height="124" rx="44" fill="#ffffff"/>
       </g>
 
-      <!-- ── Nose: heart shape — dark at rest, orange + pulse when charging ── -->
-      <path id="nose"
-            d="M 220 312
-               C 209 303 185 297 185 284
-               C 185 274 196 270 220 277
-               C 244 270 255 274 255 284
-               C 255 297 231 303 220 312 Z"/>
-
-      <!-- ── Battery readout (inside ring, below nose) ── -->
-      <text id="pct-text"
-            x="220" y="370"
-            text-anchor="middle"
-            font-family="Arial, sans-serif"
-            font-size="44"
-            font-weight="700"
-            fill="#ffffff">–%</text>
-
-      <text id="charge-label"
-            x="220" y="400"
-            text-anchor="middle"
-            font-family="Arial, sans-serif"
-            font-size="16"
-            font-weight="600"
-            letter-spacing="2.5"
-            fill="#F26522">SOLAR CHARGING</text>
+      <!-- ── Muzzle: nose.png defines the shape; fill controls the colour ── -->
+      <g id="muzzle">
+        <rect id="muzzle-fill"
+              x="155" y="243" width="130" height="100"
+              mask="url(#nose-mask)"/>
+      </g>
 
     </svg>
+  </div>
+
+  <!-- Battery readout: between ring and KI logo -->
+  <div class="battery-info">
+    <span id="pct-text">–%</span>
+    <span id="charge-label">SOLAR CHARGING</span>
   </div>
 
   <!-- Bottom logo: Kingswell Innovation -->
@@ -215,7 +221,6 @@
   </div>
 
   <script>
-    const svg    = document.getElementById('face-svg');
     const arc    = document.getElementById('battery-arc');
     const pctTxt = document.getElementById('pct-text');
     const CIRC   = 2 * Math.PI * 200; // ≈ 1257
@@ -223,10 +228,16 @@
     function render(b) {
       pctTxt.textContent = Math.round(b.level * 100) + '%';
       arc.style.strokeDashoffset = CIRC * (1 - b.level);
-      svg.classList.toggle('charging-active', b.charging);
+      document.body.classList.toggle('charging-active', b.charging);
     }
 
-    if (navigator.getBattery) {
+    // URL param override for localhost testing (ignored in production):
+    //   ?battery=75&charging=true
+    const p = new URLSearchParams(location.search);
+    if (p.has('battery')) {
+      render({ level: Math.min(100, Math.max(0, +p.get('battery'))) / 100,
+               charging: p.get('charging') === 'true' });
+    } else if (navigator.getBattery) {
       navigator.getBattery()
         .then(b => {
           render(b);
