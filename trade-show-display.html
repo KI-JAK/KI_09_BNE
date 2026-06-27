@@ -70,6 +70,9 @@
     /* ── Battery arc animates smoothly on level change ── */
     #battery-arc { transition: stroke-dashoffset 1.2s ease; }
 
+    /* ── Ears: comment out to show, uncomment to hide ── */
+    #ears { display: none; }
+
     /* ── Eye blink ── */
     .eye-group {
       transform-box: fill-box;
@@ -160,6 +163,36 @@
             <feMergeNode in="SourceGraphic"/>
           </feMerge>
         </filter>
+        <!-- Strips white background for PNG line art -->
+        <filter id="white-to-alpha" x="0" y="0" width="100%" height="100%"
+                color-interpolation-filters="sRGB">
+          <feColorMatrix type="matrix"
+            values="0 0 0 0 1
+                    0 0 0 0 1
+                    0 0 0 0 1
+                   -1 0 0 0 1"
+            result="computed"/>
+          <feComposite operator="in" in="computed" in2="SourceGraphic"/>
+        </filter>
+        <!-- Left ear mask -->
+        <mask id="ear-l" style="mask-type:alpha">
+          <image href="ear.png" x="-20" y="-70" width="180" height="180"
+                 preserveAspectRatio="xMidYMid meet"
+                 filter="url(#white-to-alpha)"/>
+        </mask>
+        <!-- Right ear mask: same image mirrored horizontally around x=220 -->
+        <mask id="ear-r" style="mask-type:alpha">
+          <image href="ear.png" x="-20" y="-70" width="180" height="180"
+                 preserveAspectRatio="xMidYMid meet"
+                 filter="url(#white-to-alpha)"
+                 transform="translate(440,0) scale(-1,1)"/>
+        </mask>
+        <!-- Clip ears to outside the ring + gap (r=220 vs ring r=200, ~15px clear of stroke) -->
+        <clipPath id="ear-clip">
+          <path fill-rule="evenodd"
+            d="M -50 -100 H 490 V 490 H -50 Z
+               M 220 0 A 220 220 0 1 0 220 440 A 220 220 0 1 0 220 0 Z"/>
+        </clipPath>
         <!-- Shape mask: uses nose.png alpha channel directly -->
         <mask id="nose-mask" style="mask-type:alpha">
           <image href="nose.png" x="155" y="243" width="130" height="100"
@@ -185,6 +218,12 @@
               stroke-dasharray="1257 1257"
               stroke-dashoffset="1257"
               transform="rotate(-90 220 220)"/>
+
+      <!-- ── Ears: toggle visibility in CSS below ── -->
+      <g id="ears" clip-path="url(#ear-clip)">
+        <rect x="-20" y="-70" width="180" height="180" fill="#F26522" mask="url(#ear-l)"/>
+        <rect x="280" y="-70" width="180" height="180" fill="#F26522" mask="url(#ear-r)"/>
+      </g>
 
       <!-- ── Eyes ── -->
       <g class="eye-group eye-l">
