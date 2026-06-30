@@ -208,6 +208,11 @@
     #expr-muzzle-fill { fill: #F26522; transition: fill 1.5s ease; }
     body.charging-active #expr-muzzle { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
     body.charging-active #expr-muzzle-fill { fill: #fff; }
+
+    /* CSS-driven nose mask swap — more reliable than JS setAttribute on iOS */
+    #face-svg.expr-sad #muzzle-fill      { mask: url(#nose-sad); }
+    #face-svg.expr-scared #muzzle-fill   { mask: url(#nose-scared); }
+    #face-svg.expr-confused #muzzle-fill { mask: url(#nose-confused); }
   </style>
 </head>
 <body>
@@ -641,36 +646,23 @@
     (function () {
       var firstEvent = true;
 
-      /* lookup the mask image element inside each mask def */
-      var MASKS = {
-        happy:   'nose-mask',
-        sad:     'nose-sad',
-        scared:  'nose-scared',
-        confused:'nose-confused'
-      };
       var exprClasses = ['expr-happy','expr-sad','expr-scared','expr-confused'];
       var exprTimer   = null;
 
       function clearExpr() {
-        clearTimeout(exprTimer);
         var fsvg = document.getElementById('face-svg');
         if (fsvg) exprClasses.forEach(function(c){ fsvg.classList.remove(c); });
-        var fill = document.getElementById('muzzle-fill');
-        if (fill) fill.setAttribute('mask','url(#nose-mask)');
       }
 
       function dispatch(action) {
         var fsvg = document.getElementById('face-svg');
 
-        if (MASKS[action]) {
-          /* expression command */
+        if (action === 'happy' || action === 'sad' || action === 'scared' || action === 'confused') {
           clearTimeout(exprTimer);
           if (fsvg) {
             exprClasses.forEach(function(c){ fsvg.classList.remove(c); });
             fsvg.classList.add('expr-' + action);
           }
-          var fill = document.getElementById('muzzle-fill');
-          if (fill) fill.setAttribute('mask', 'url(#' + MASKS[action] + ')');
           exprTimer = setTimeout(clearExpr, 4000);
 
         } else if (action === 'charging') {
