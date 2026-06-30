@@ -660,7 +660,7 @@
       }
 
       function poll() {
-        fetch(DB_URL)
+        fetch(DB_URL, { cache: 'no-store' })
           .then(function (r) { return r.json(); })
           .then(function (data) {
             if (!data || !data.action) return;
