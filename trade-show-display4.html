@@ -209,15 +209,16 @@
     body.charging-active #expr-muzzle { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
     body.charging-active #expr-muzzle-fill { fill: #fff; }
 
-    /* Expression nose elements — static masks, shown/hidden by CSS class (no JS setAttribute) */
-    #muzzle-sad, #muzzle-scared, #muzzle-confused { display: none; filter: url(#nose-glow); }
+    /* Expression nose elements — opacity: 0 keeps them in the render tree so iOS evaluates
+       the mask on first paint; opacity: 1 reveals the already-resolved mask without re-evaluation */
+    #muzzle-sad, #muzzle-scared, #muzzle-confused { opacity: 0; filter: url(#nose-glow); }
     #muzzle-sad rect, #muzzle-scared rect, #muzzle-confused rect { fill: #F26522; transition: fill 1.5s ease; }
     body.charging-active #muzzle-sad rect, body.charging-active #muzzle-scared rect, body.charging-active #muzzle-confused rect { fill: #fff; }
     body.charging-active #muzzle-sad, body.charging-active #muzzle-scared, body.charging-active #muzzle-confused { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
-    #face-svg.expr-sad #muzzle, #face-svg.expr-scared #muzzle, #face-svg.expr-confused #muzzle { display: none; }
-    #face-svg.expr-sad #muzzle-sad       { display: inline; }
-    #face-svg.expr-scared #muzzle-scared { display: inline; }
-    #face-svg.expr-confused #muzzle-confused { display: inline; }
+    #face-svg.expr-sad #muzzle, #face-svg.expr-scared #muzzle, #face-svg.expr-confused #muzzle { opacity: 0; }
+    #face-svg.expr-sad #muzzle-sad       { opacity: 1; }
+    #face-svg.expr-scared #muzzle-scared { opacity: 1; }
+    #face-svg.expr-confused #muzzle-confused { opacity: 1; }
 
     /* Split-screen layout when both QR overlays are active together */
     body.qr-split #qr-bne { left: 0; right: 50%; width: 50%; }
