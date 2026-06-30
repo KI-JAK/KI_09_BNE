@@ -209,9 +209,23 @@
     body.charging-active #expr-muzzle { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
     body.charging-active #expr-muzzle-fill { fill: #fff; }
 
+    /* Expression nose elements — static masks, shown/hidden by CSS class (no JS setAttribute) */
+    #muzzle-sad, #muzzle-scared, #muzzle-confused { display: none; filter: url(#nose-glow); }
+    #muzzle-sad rect, #muzzle-scared rect, #muzzle-confused rect { fill: #F26522; transition: fill 1.5s ease; }
+    body.charging-active #muzzle-sad rect, body.charging-active #muzzle-scared rect, body.charging-active #muzzle-confused rect { fill: #fff; }
+    body.charging-active #muzzle-sad, body.charging-active #muzzle-scared, body.charging-active #muzzle-confused { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
+    #face-svg.expr-sad #muzzle, #face-svg.expr-scared #muzzle, #face-svg.expr-confused #muzzle { display: none; }
+    #face-svg.expr-sad #muzzle-sad       { display: inline; }
+    #face-svg.expr-scared #muzzle-scared { display: inline; }
+    #face-svg.expr-confused #muzzle-confused { display: inline; }
+
     /* Split-screen layout when both QR overlays are active together */
     body.qr-split #qr-bne { left: 0; right: 50%; width: 50%; }
     body.qr-split #qr-ki  { left: 50%; right: 0; width: 50%; }
+    body.qr-split .qr-overlay { padding: 3vh 3vw; }
+    body.qr-split .qr-overlay .qr-code { width: min(18vw, 28vh); }
+    body.qr-split .qr-desc { max-width: 44vw; }
+    body.qr-split .qr-headline { max-width: 44vw; }
   </style>
 </head>
 <body>
@@ -308,6 +322,16 @@
       <!-- Expression muzzle (replaces nose for sad/scared/confused) -->
       <g id="expr-muzzle" style="display:none; pointer-events:none;">
         <rect id="expr-muzzle-fill" x="155" y="243" width="130" height="100" fill="#F26522"/>
+      </g>
+      <!-- Pre-declared expression noses with static mask attributes — shown/hidden by CSS class -->
+      <g id="muzzle-sad" style="pointer-events:none;">
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-sad)"/>
+      </g>
+      <g id="muzzle-scared" style="pointer-events:none;">
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-scared)"/>
+      </g>
+      <g id="muzzle-confused" style="pointer-events:none;">
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-confused)"/>
       </g>
 
       <!-- Ring touch target + shimmer -->
