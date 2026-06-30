@@ -652,11 +652,11 @@
     };
     firebase.initializeApp(firebaseConfig);
     var db = firebase.database();
-    var firstCmdLoad = true;
+    var pageLoadTime = Date.now();
     db.ref('command').on('value', function (snapshot) {
-      if (firstCmdLoad) { firstCmdLoad = false; return; }
       var data = snapshot.val();
       if (!data || !data.action) return;
+      if (data.timestamp && data.timestamp <= pageLoadTime) return;
       switch (data.action) {
         case 'happy': case 'sad': case 'scared': case 'confused':
           setExpression(data.action);
