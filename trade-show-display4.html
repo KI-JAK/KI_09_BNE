@@ -639,9 +639,8 @@
   </script>
   <script>
     (function () {
-      var DB_URL = 'https://ki-bne-demo-default-rtdb.firebaseio.com/command.json';
-      var lastTs = Date.now();
-      var lastAction = null;
+      var pageLoadTs = Date.now();
+      var firstEvent = true;
 
       function dispatch(action) {
         switch (action) {
@@ -659,22 +658,14 @@
         }
       }
 
-      function poll() {
-        fetch(DB_URL, { cache: 'no-store' })
-          .then(function (r) { return r.json(); })
-          .then(function (data) {
-            if (!data || !data.action) return;
-            var ts = data.ts || 0;
-            if (ts > lastTs || (data.action !== lastAction)) {
-              lastTs = ts;
-              lastAction = data.action;
-              dispatch(data.action);
-            }
-          })
-          .catch(function () {});
-      }
-
-      setInterval(poll, 800);
+      var src = new EventSource('https://ki-bne-demo-default-rtdb.firebaseio.com/command.json');
+      src.addEventListener('put', function (e) {
+        if (firstEvent) { firstEvent = false; return; }
+        try {
+          var data = JSON.parse(e.data).data;
+          if (data && data.action) dispatch(data.action);
+        } catch (err) {}
+      });
     })();
   </script>
 </body>
