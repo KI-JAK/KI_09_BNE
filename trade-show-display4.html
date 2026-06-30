@@ -638,41 +638,45 @@
       window.clearExpression = clearExpression;
     })();
   </script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
   <script>
-    var firebaseConfig = {
-      apiKey: "AIzaSyBb2f69USqa_r3ZPGyvUgL8kW6kKeKEo44",
-      authDomain: "ki-bne-demo.firebaseapp.com",
-      databaseURL: "https://ki-bne-demo-default-rtdb.firebaseio.com",
-      projectId: "ki-bne-demo",
-      storageBucket: "ki-bne-demo.firebasestorage.app",
-      messagingSenderId: "706850399876",
-      appId: "1:706850399876:web:965b1d99a82735f10284d1"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.database();
-    var pageLoadTime = Date.now();
-    db.ref('command').on('value', function (snapshot) {
-      var data = snapshot.val();
-      if (!data || !data.action) return;
-      if (data.timestamp && data.timestamp <= pageLoadTime) return;
-      switch (data.action) {
-        case 'happy': case 'sad': case 'scared': case 'confused':
-          setExpression(data.action);
-          break;
-        case 'charging':
-          document.body.classList.toggle('charging-active');
-          break;
-        case 'qr':
-          if (document.getElementById('info-overlay').classList.contains('active')) {
-            hideInfo();
-          } else {
-            showInfo();
-          }
-          break;
+    (function () {
+      var DB_URL = 'https://ki-bne-demo-default-rtdb.firebaseio.com/command.json';
+      var lastTs = Date.now();
+      var lastAction = null;
+
+      function dispatch(action) {
+        switch (action) {
+          case 'happy': case 'sad': case 'scared': case 'confused':
+            setExpression(action); break;
+          case 'charging':
+            document.body.classList.toggle('charging-active'); break;
+          case 'qr':
+            if (document.getElementById('info-overlay').classList.contains('active')) {
+              hideInfo();
+            } else {
+              showInfo();
+            }
+            break;
+        }
       }
-    });
+
+      function poll() {
+        fetch(DB_URL)
+          .then(function (r) { return r.json(); })
+          .then(function (data) {
+            if (!data || !data.action) return;
+            var ts = data.ts || 0;
+            if (ts > lastTs || (data.action !== lastAction)) {
+              lastTs = ts;
+              lastAction = data.action;
+              dispatch(data.action);
+            }
+          })
+          .catch(function () {});
+      }
+
+      setInterval(poll, 800);
+    })();
   </script>
 </body>
 </html>

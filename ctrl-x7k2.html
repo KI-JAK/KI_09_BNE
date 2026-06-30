@@ -81,7 +81,9 @@
   <div id="status"></div>
 
   <script>
+    var DB_URL = 'https://ki-bne-demo-default-rtdb.firebaseio.com/command.json';
     var PIN = '1234';
+
     var pinScreen = document.getElementById('pin-screen');
     var pinInput  = document.getElementById('pin-input');
     var pinError  = document.getElementById('pin-error');
@@ -99,31 +101,12 @@
     }
 
     function sendCmd(action) {
-      if (typeof db !== 'undefined') {
-        db.ref('command').set({
-          action: action,
-          timestamp: firebase.database.ServerValue.TIMESTAMP
-        });
-      }
+      var payload = JSON.stringify({ action: action, ts: Date.now() });
+      fetch(DB_URL, { method: 'PUT', body: payload })
+        .catch(function () {});
       statusEl.textContent = 'Sent: ' + action;
       setTimeout(function () { statusEl.textContent = ''; }, 1500);
     }
-  </script>
-
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
-  <script>
-    var firebaseConfig = {
-      apiKey: "AIzaSyBb2f69USqa_r3ZPGyvUgL8kW6kKeKEo44",
-      authDomain: "ki-bne-demo.firebaseapp.com",
-      databaseURL: "https://ki-bne-demo-default-rtdb.firebaseio.com",
-      projectId: "ki-bne-demo",
-      storageBucket: "ki-bne-demo.firebasestorage.app",
-      messagingSenderId: "706850399876",
-      appId: "1:706850399876:web:965b1d99a82735f10284d1"
-    };
-    firebase.initializeApp(firebaseConfig);
-    var db = firebase.database();
   </script>
 </body>
 </html>
