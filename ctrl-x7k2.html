@@ -12,7 +12,6 @@
     -webkit-tap-highlight-color: transparent;
   }
 
-  /* ── PIN screen ── */
   #pin-screen {
     position: fixed; inset: 0;
     display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -31,7 +30,6 @@
     -webkit-appearance: none;
   }
 
-  /* ── Controller grid ── */
   #grid {
     position: fixed; inset: 4vw;
     display: none;
@@ -43,10 +41,6 @@
     display: flex; flex-direction: column; align-items: center; justify-content: center;
     gap: 1.2vh; border-radius: 18px; border: none; cursor: pointer;
     color: #fff; font-size: clamp(16px, 3vh, 26px); font-weight: 700;
-<<<<<<< Updated upstream
-    transition: transform 0.12s ease, filter 0.12s ease;
-=======
->>>>>>> Stashed changes
     -webkit-appearance: none;
   }
   .btn:active { opacity: 0.75; }
@@ -72,11 +66,7 @@
     <input id="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off"
            onkeydown="if(event.key==='Enter')tryUnlock()">
     <div id="pin-error"></div>
-<<<<<<< Updated upstream
     <button id="pin-submit" onclick="tryUnlock()">Unlock</button>
-=======
-    <button onclick="tryUnlock()">Unlock</button>
->>>>>>> Stashed changes
   </div>
 
   <div id="grid">
@@ -90,11 +80,6 @@
 
   <div id="status"></div>
 
-<<<<<<< Updated upstream
-  <!-- PIN/UI logic runs immediately, before Firebase loads -->
-=======
-  <!-- UI logic runs before Firebase loads -->
->>>>>>> Stashed changes
   <script>
     var PIN = '1234';
     var pinScreen = document.getElementById('pin-screen');
@@ -125,10 +110,6 @@
     }
   </script>
 
-<<<<<<< Updated upstream
-  <!-- Firebase loads after UI is ready -->
-=======
->>>>>>> Stashed changes
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
   <script>
