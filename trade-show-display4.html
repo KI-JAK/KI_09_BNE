@@ -324,15 +324,15 @@
       <g id="expr-muzzle" style="display:none; pointer-events:none;">
         <rect id="expr-muzzle-fill" x="155" y="243" width="130" height="100" fill="#F26522"/>
       </g>
-      <!-- Pre-declared expression noses with static mask attributes — shown/hidden by CSS class -->
+      <!-- TEST: all use nose-mask to confirm opacity toggle works on iOS before using custom masks -->
       <g id="muzzle-sad" style="pointer-events:none;">
-        <rect x="155" y="243" width="130" height="100" mask="url(#nose-sad)"/>
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
       </g>
       <g id="muzzle-scared" style="pointer-events:none;">
-        <rect x="155" y="243" width="130" height="100" mask="url(#nose-scared)"/>
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
       </g>
       <g id="muzzle-confused" style="pointer-events:none;">
-        <rect x="155" y="243" width="130" height="100" mask="url(#nose-confused)"/>
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
       </g>
 
       <!-- Ring touch target + shimmer -->
