@@ -638,8 +638,12 @@
     })();
   </script>
   <script>
+    /* DEBUG: auto-trigger happy after 4s to confirm setExpression works on iOS */
+    setTimeout(function () {
+      if (window.setExpression) setExpression('happy');
+    }, 4000);
+
     (function () {
-      var pageLoadTs = Date.now();
       var firstEvent = true;
 
       function dispatch(action) {
