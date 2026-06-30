@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>Demo Controller</title>
+<style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body {
+    width: 100vw; height: 100vh; overflow: hidden; background: #111;
+    font-family: Arial, sans-serif; user-select: none; -webkit-user-select: none;
+    -webkit-tap-highlight-color: transparent;
+  }
+  body { display: flex; align-items: center; justify-content: center; }
+
+  /* ── PIN screen ── */
+  #pin-screen {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 24px; width: 100%; height: 100%;
+  }
+  #pin-screen h1 { color: #fff; font-size: 22px; font-weight: 600; }
+  #pin-input {
+    font-size: 32px; letter-spacing: 12px; text-align: center;
+    width: 220px; padding: 14px; border-radius: 12px; border: none;
+    background: #222; color: #fff; outline: none;
+  }
+  #pin-error { color: #ff6b6b; font-size: 14px; height: 18px; }
+  #pin-submit {
+    font-size: 18px; padding: 12px 32px; border-radius: 10px; border: none;
+    background: #F26522; color: #fff; font-weight: 700; cursor: pointer;
+  }
+
+  /* ── Controller grid ── */
+  #grid {
+    display: none;
+    grid-template-columns: 1fr 1fr;
+    grid-template-rows: 1fr 1fr 1fr;
+    gap: 3vw;
+    width: 92vw; height: 92vh;
+  }
+  .btn {
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    gap: 1.2vh; border-radius: 18px; border: none; cursor: pointer;
+    color: #fff; font-size: clamp(16px, 3vh, 26px); font-weight: 700;
+    transition: transform 0.12s ease, filter 0.12s ease;
+  }
+  .btn:active { transform: scale(0.94); filter: brightness(1.3); }
+  .btn .emoji { font-size: clamp(34px, 7vh, 60px); }
+
+  .btn-happy    { background: #2e9e4f; }
+  .btn-sad      { background: #3a6fb5; }
+  .btn-scared   { background: #7b3ab5; }
+  .btn-confused { background: #b58a1f; }
+  .btn-charging { background: #F26522; }
+  .btn-qr       { background: #444; }
+
+  #status {
+    position: fixed; bottom: 1.5vh; left: 0; right: 0; text-align: center;
+    color: rgba(255,255,255,0.4); font-size: 13px;
+  }
+</style>
+</head>
+<body>
+
+  <div id="pin-screen">
+    <h1>Enter PIN</h1>
+    <input id="pin-input" type="password" inputmode="numeric" maxlength="4" autocomplete="off">
+    <div id="pin-error"></div>
+    <button id="pin-submit">Unlock</button>
+  </div>
+
+  <div id="grid">
+    <button class="btn btn-happy"    onclick="sendCmd('happy')"><span class="emoji">&#128512;</span>Happy</button>
+    <button class="btn btn-sad"      onclick="sendCmd('sad')"><span class="emoji">&#128542;</span>Sad</button>
+    <button class="btn btn-scared"   onclick="sendCmd('scared')"><span class="emoji">&#128561;</span>Scared</button>
+    <button class="btn btn-confused" onclick="sendCmd('confused')"><span class="emoji">&#128533;</span>Confused</button>
+    <button class="btn btn-charging" onclick="sendCmd('charging')"><span class="emoji">&#9889;</span>Charging</button>
+    <button class="btn btn-qr"       onclick="sendCmd('qr')"><span class="emoji">&#128241;</span>QR Codes</button>
+  </div>
+
+  <div id="status"></div>
+
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/10.7.0/firebase-database-compat.js"></script>
+  <script>
+    var firebaseConfig = {
+      apiKey: "AIzaSyBb2f69USqa_r3ZPGyvUgL8kW6kKeKEo44",
+      authDomain: "ki-bne-demo.firebaseapp.com",
+      databaseURL: "https://ki-bne-demo-default-rtdb.firebaseio.com",
+      projectId: "ki-bne-demo",
+      storageBucket: "ki-bne-demo.firebasestorage.app",
+      messagingSenderId: "706850399876",
+      appId: "1:706850399876:web:965b1d99a82735f10284d1"
+    };
+    firebase.initializeApp(firebaseConfig);
+    var db = firebase.database();
+
+    var PIN = '1234';
+
+    var pinScreen = document.getElementById('pin-screen');
+    var pinInput  = document.getElementById('pin-input');
+    var pinError  = document.getElementById('pin-error');
+    var grid      = document.getElementById('grid');
+    var statusEl  = document.getElementById('status');
+
+    function tryUnlock() {
+      if (pinInput.value === PIN) {
+        pinScreen.style.display = 'none';
+        grid.style.display = 'grid';
+      } else {
+        pinError.textContent = 'Incorrect PIN';
+        pinInput.value = '';
+      }
+    }
+    document.getElementById('pin-submit').addEventListener('click', tryUnlock);
+    pinInput.addEventListener('keydown', function (e) {
+      if (e.key === 'Enter') tryUnlock();
+    });
+    pinInput.focus();
+
+    function sendCmd(action) {
+      db.ref('command').set({
+        action: action,
+        timestamp: firebase.database.ServerValue.TIMESTAMP
+      });
+      statusEl.textContent = 'Sent: ' + action;
+      setTimeout(function () { statusEl.textContent = ''; }, 1500);
+    }
+  </script>
+</body>
+</html>
