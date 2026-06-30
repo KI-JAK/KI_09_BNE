@@ -209,10 +209,9 @@
     body.charging-active #expr-muzzle { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
     body.charging-active #expr-muzzle-fill { fill: #fff; }
 
-    /* CSS-driven nose mask swap — more reliable than JS setAttribute on iOS */
-    #face-svg.expr-sad #muzzle-fill      { mask: url(#nose-sad); }
-    #face-svg.expr-scared #muzzle-fill   { mask: url(#nose-scared); }
-    #face-svg.expr-confused #muzzle-fill { mask: url(#nose-confused); }
+    /* Split-screen layout when both QR overlays are active together */
+    body.qr-split #qr-bne { left: 0; right: 50%; width: 50%; }
+    body.qr-split #qr-ki  { left: 50%; right: 0; width: 50%; }
   </style>
 </head>
 <body>
@@ -669,12 +668,18 @@
           document.body.classList.toggle('charging-active');
 
         } else if (action === 'qr') {
-          var ov = document.getElementById('info-overlay');
-          if (!ov) return;
-          if (ov.classList.contains('active')) {
-            ov.classList.remove('active');
+          var bne = document.getElementById('qr-bne');
+          var ki  = document.getElementById('qr-ki');
+          if (!bne || !ki) return;
+          var showing = bne.classList.contains('active');
+          if (showing) {
+            bne.classList.remove('active');
+            ki.classList.remove('active');
+            document.body.classList.remove('qr-split');
           } else {
-            ov.classList.add('active');
+            bne.classList.add('active');
+            ki.classList.add('active');
+            document.body.classList.add('qr-split');
           }
         }
       }
