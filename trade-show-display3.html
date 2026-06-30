@@ -29,7 +29,7 @@
 
     .center { flex: 1; display: flex; align-items: center; justify-content: center; }
 
-    .dog { width: 156vh; height: auto; overflow: visible; }
+    .dog { width: 156vh; height: auto; overflow: visible; position: relative; z-index: 5; }
 
     #ears { display: none; }
 
@@ -74,7 +74,7 @@
     }
 
     /* ── Info overlay ── */
-    #tap-layer { position: fixed; inset: 0; z-index: 50; }
+    #tap-layer { position: fixed; inset: 0; z-index: 2; }
     #info-overlay { position: fixed; inset: 0; pointer-events: none; z-index: 100; }
     .info-panel {
       position: absolute; top: 0; bottom: 0; width: 35vw;
@@ -142,12 +142,54 @@
     .qr-dismiss { order: 5; font-family: Arial, sans-serif; font-size: clamp(9px,1.3vh,12px); color: rgba(255,255,255,0.22); }
     #qr-bne { background: #005264; }
     #qr-ki  { background: #231d57; }
+
+    /* ── Touch reactions ── */
+    @keyframes poke-blink {
+      0%,100% { transform: scaleY(1); }
+      30%     { transform: scaleY(0.06); }
+      60%     { transform: scaleY(1.08); }
+    }
+    .poke-blink { animation: poke-blink 0.38s ease-in-out forwards !important; }
+
+    @keyframes head-tilt {
+      0%,100% { transform: rotate(0deg); }
+      35%     { transform: rotate(5deg); }
+      65%     { transform: rotate(-2.5deg); }
+    }
+    .head-tilt { animation: head-tilt 0.45s ease-in-out forwards !important; }
+
+    @keyframes nose-boop {
+      0%,100% { filter: url(#nose-glow); }
+      20%     { filter: url(#nose-glow) drop-shadow(0 0 30px #F26522) drop-shadow(0 0 12px rgba(255,220,160,0.75)); }
+    }
+    .nose-boop { animation: nose-boop 0.65s ease-out forwards !important; }
+
+    @keyframes ring-shimmer-anim {
+      0%   { stroke-dashoffset: 0;     stroke-opacity: 0; }
+      8%   { stroke-opacity: 0.9; }
+      88%  { stroke-opacity: 0.85; }
+      100% { stroke-dashoffset: -1257; stroke-opacity: 0; }
+    }
+    .eye-l, .eye-r, #muzzle { cursor: pointer; pointer-events: all; }
+    #ring-touch { cursor: pointer; pointer-events: stroke; }
+    #ring-shimmer { stroke-opacity: 0; }
+    #ring-shimmer.ring-active { animation: ring-shimmer-anim 0.85s linear forwards; }
+
+    #face-svg { transform-origin: 50% 50%; }
+    #face-svg.stroking .eye-group {
+      animation: none !important;
+      transform: scaleY(0.3) !important;
+      transition: transform 0.25s ease;
+    }
+    #face-svg.stroking #muzzle {
+      filter: url(#nose-glow) drop-shadow(0 0 20px #F26522) !important;
+    }
   </style>
 </head>
 <body>
 
   <div class="center">
-    <svg id="face-svg" class="dog" viewBox="0 0 440 440"
+    <svg id="face-svg" class="dog" viewBox="0 0 440 440" onclick="onFaceTap(event)" ontouchend="onFaceTouchEnd(event)"
          xmlns="http://www.w3.org/2000/svg"
          xmlns:xlink="http://www.w3.org/1999/xlink" aria-hidden="true">
 
@@ -225,6 +267,14 @@
         <rect id="muzzle-fill" x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
       </g>
 
+
+      <!-- Ring touch target + shimmer -->
+      <circle id="ring-touch" cx="220" cy="220" r="200" fill="none"
+              stroke="rgba(255,255,255,0.01)" stroke-width="36" style="cursor:pointer;"/>
+      <circle id="ring-shimmer" cx="220" cy="220" r="200" fill="none"
+              stroke="rgba(255,190,60,0.9)" stroke-width="5"
+              stroke-dasharray="120 1137" stroke-dashoffset="0"
+              stroke-linecap="round" style="pointer-events:none;"/>
     </svg>
   </div>
 
@@ -355,6 +405,160 @@
       if (infoOverlay.classList.contains('active')) { hideInfo(); } else { showInfo(); }
     }
 
+
+    // ── V3 interactive face reactions ─────────────────────────────────────
+    (function () {
+      var svg         = document.getElementById('face-svg');
+      var eyeL        = svg.querySelector('.eye-l');
+      var eyeR        = svg.querySelector('.eye-r');
+      var muzzleEl    = svg.querySelector('#muzzle');
+      var ringShimmer = svg.querySelector('#ring-shimmer');
+      var ringTouch   = svg.querySelector('#ring-touch');
+
+      // ── Audio ──────────────────────────────────────────
+      var audioCtx;
+      function getCtx() {
+        if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        if (audioCtx.state === 'suspended') audioCtx.resume();
+        return audioCtx;
+      }
+      function playBoop() {
+        try {
+          var ctx = getCtx();
+          [[520, 0.00], [780, 0.13]].forEach(function (pair) {
+            var freq = pair[0], delay = pair[1];
+            var osc = ctx.createOscillator(), g = ctx.createGain();
+            osc.connect(g); g.connect(ctx.destination);
+            osc.type = 'sine'; osc.frequency.value = freq;
+            g.gain.setValueAtTime(0.001, ctx.currentTime + delay);
+            g.gain.linearRampToValueAtTime(0.22, ctx.currentTime + delay + 0.018);
+            g.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + delay + 0.10);
+            osc.start(ctx.currentTime + delay);
+            osc.stop(ctx.currentTime + delay + 0.13);
+          });
+        } catch (err) {}
+      }
+
+      // ── Eye poke / head tilt ───────────────────────────
+      var lastEyeTap = { l: 0, r: 0 };
+
+      function pokeBlink(el) {
+        el.classList.remove('poke-blink'); void el.offsetWidth;
+        el.classList.add('poke-blink');
+        setTimeout(function () { el.classList.remove('poke-blink'); }, 420);
+      }
+
+      function onEyeTap(side) {
+        var now = Date.now(), other = side === 'l' ? 'r' : 'l';
+        if (now - lastEyeTap[other] < 500) {
+          pokeBlink(eyeL); pokeBlink(eyeR);
+          svg.classList.remove('head-tilt'); void svg.offsetWidth;
+          svg.classList.add('head-tilt');
+          setTimeout(function () { svg.classList.remove('head-tilt'); }, 500);
+        } else {
+          pokeBlink(side === 'l' ? eyeL : eyeR);
+        }
+        lastEyeTap[side] = now;
+        zoneHit = true;
+      }
+
+      // ── Nose hold + boop ───────────────────────────────
+      var holdStart = 0, holdActive = false, holdRafId = null;
+
+      function noseDown() {
+        holdStart = Date.now(); holdActive = true;
+        (function tick() {
+          if (!holdActive) return;
+          var t = Math.min((Date.now() - holdStart) / 1500, 1);
+          var px = t * 38;
+          muzzleEl.style.filter = 'url(#nose-glow) drop-shadow(0 0 ' + px + 'px #F26522) drop-shadow(0 0 ' + Math.round(px * 0.5) + 'px rgba(255,160,0,0.55))';
+          holdRafId = requestAnimationFrame(tick);
+        })();
+        zoneHit = true;
+      }
+
+      function noseUp() {
+        var dur = Date.now() - holdStart;
+        holdActive = false; cancelAnimationFrame(holdRafId);
+        muzzleEl.style.transition = 'filter 0.5s ease';
+        muzzleEl.style.filter = '';
+        setTimeout(function () { muzzleEl.style.transition = ''; }, 560);
+        if (dur < 350) {
+          muzzleEl.classList.remove('nose-boop'); void muzzleEl.offsetWidth;
+          muzzleEl.classList.add('nose-boop');
+          setTimeout(function () { muzzleEl.classList.remove('nose-boop'); }, 700);
+          playBoop();
+        }
+        zoneHit = true;
+      }
+
+      // ── Ring shimmer ───────────────────────────────────
+      function doRingShimmer() {
+        ringShimmer.classList.remove('ring-active'); void ringShimmer.getBoundingClientRect();
+        ringShimmer.classList.add('ring-active');
+        setTimeout(function () { ringShimmer.classList.remove('ring-active'); }, 920);
+        zoneHit = true;
+      }
+
+      // ── Stroke / drag ──────────────────────────────────
+      var ptrDown = false, strokeDist = 0, strokePx = 0, strokePy = 0, strokeTimer = null;
+
+      function ptOf(e) {
+        var s = (e.changedTouches || e.touches) ? (e.changedTouches ? e.changedTouches[0] : e.touches[0]) : e;
+        return { x: s.clientX, y: s.clientY };
+      }
+      function onSvgDown(e) {
+        ptrDown = true; strokeDist = 0; var p = ptOf(e); strokePx = p.x; strokePy = p.y;
+      }
+      function onSvgMove(e) {
+        if (!ptrDown) return;
+        var p = ptOf(e), dx = p.x - strokePx, dy = p.y - strokePy;
+        strokeDist += Math.sqrt(dx * dx + dy * dy);
+        strokePx = p.x; strokePy = p.y;
+        if (strokeDist > 45) {
+          svg.classList.add('stroking');
+          clearTimeout(strokeTimer);
+          strokeTimer = setTimeout(function () { svg.classList.remove('stroking'); }, 1100);
+        }
+      }
+      function onSvgUp() { ptrDown = false; }
+
+      svg.addEventListener('mousedown',   onSvgDown);
+      svg.addEventListener('touchstart',  onSvgDown, { passive: true });
+      svg.addEventListener('mousemove',   onSvgMove);
+      svg.addEventListener('touchmove',   onSvgMove, { passive: true });
+      svg.addEventListener('mouseup',     onSvgUp);
+      svg.addEventListener('touchend',    onSvgUp,  { passive: true });
+      svg.addEventListener('touchcancel', function () { onSvgUp(); svg.classList.remove('stroking'); }, { passive: true });
+
+      // ── Zone-hit guard: prevent face-tap → showInfo ────
+      var zoneHit = false;
+
+      window.onFaceTap = function (e) {
+        if (zoneHit) { zoneHit = false; return; }
+        handleScreenTap(e);
+      };
+      window.onFaceTouchEnd = function (e) {
+        if (zoneHit) { zoneHit = false; return; }
+        if (strokeDist >= 45) return;
+        handleScreenTap(e);
+      };
+
+      // ── Wire up zone listeners ─────────────────────────
+      eyeL.addEventListener('click',      function () { onEyeTap('l'); });
+      eyeL.addEventListener('touchend',   function () { onEyeTap('l'); }, { passive: true });
+      eyeR.addEventListener('click',      function () { onEyeTap('r'); });
+      eyeR.addEventListener('touchend',   function () { onEyeTap('r'); }, { passive: true });
+
+      muzzleEl.addEventListener('mousedown',   noseDown);
+      muzzleEl.addEventListener('touchstart',  noseDown, { passive: true });
+      muzzleEl.addEventListener('mouseup',     noseUp);
+      muzzleEl.addEventListener('touchend',    noseUp, { passive: true });
+      muzzleEl.addEventListener('touchcancel', noseUp, { passive: true });
+
+      ringTouch.addEventListener('click',      doRingShimmer);
+      ringTouch.addEventListener('touchstart', doRingShimmer, { passive: true });
+    })();
   </script>
 
 </body>
