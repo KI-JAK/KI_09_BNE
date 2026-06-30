@@ -638,26 +638,56 @@
     })();
   </script>
   <script>
-    /* DEBUG: auto-trigger happy after 4s to confirm setExpression works on iOS */
+    /* DEBUG: auto-trigger happy after 4s */
     setTimeout(function () {
-      if (window.setExpression) setExpression('happy');
+      var fsvg = document.getElementById('face-svg');
+      if (fsvg) {
+        ['expr-happy','expr-sad','expr-scared','expr-confused'].forEach(function(c){fsvg.classList.remove(c);});
+        fsvg.classList.add('expr-happy');
+        setTimeout(function(){
+          ['expr-happy','expr-sad','expr-scared','expr-confused'].forEach(function(c){fsvg.classList.remove(c);});
+        }, 4000);
+      }
     }, 4000);
 
     (function () {
       var firstEvent = true;
 
       function dispatch(action) {
+        var fsvg = document.getElementById('face-svg');
+        var exprClasses = ['expr-happy','expr-sad','expr-scared','expr-confused'];
+
         switch (action) {
           case 'happy': case 'sad': case 'scared': case 'confused':
-            setExpression(action); break;
-          case 'charging':
-            document.body.classList.toggle('charging-active'); break;
-          case 'qr':
-            if (document.getElementById('info-overlay').classList.contains('active')) {
-              hideInfo();
-            } else {
-              showInfo();
+            if (fsvg) {
+              exprClasses.forEach(function(c){fsvg.classList.remove(c);});
+              fsvg.classList.add('expr-' + action);
+              /* also swap muzzle for sad/scared/confused */
+              var orig = document.getElementById('muzzle');
+              var expr = document.getElementById('expr-muzzle');
+              var fill = document.getElementById('expr-muzzle-fill');
+              var masks = {sad:'nose-sad', scared:'nose-scared', confused:'nose-confused'};
+              if (masks[action] && orig && expr && fill) {
+                fill.setAttribute('mask','url(#'+masks[action]+')');
+                orig.style.opacity = '0';
+                expr.style.display = '';
+              } else if (orig && expr) {
+                orig.style.opacity = '';
+                expr.style.display = 'none';
+              }
+              setTimeout(function(){
+                exprClasses.forEach(function(c){fsvg.classList.remove(c);});
+                if (orig) orig.style.opacity = '';
+                if (expr) expr.style.display = 'none';
+              }, 4000);
             }
+            break;
+          case 'charging':
+            document.body.classList.toggle('charging-active');
+            break;
+          case 'qr':
+            var ov = document.getElementById('info-overlay');
+            if (ov) ov.classList.toggle('active');
             break;
         }
       }
