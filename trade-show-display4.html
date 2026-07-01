@@ -325,13 +325,13 @@
         <rect id="expr-muzzle-fill" x="155" y="243" width="130" height="100" fill="#F26522"/>
       </g>
       <g id="muzzle-sad" style="pointer-events:none;">
-        <rect x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-sad)"/>
       </g>
       <g id="muzzle-scared" style="pointer-events:none;">
-        <rect x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-scared)"/>
       </g>
       <g id="muzzle-confused" style="pointer-events:none;">
-        <rect x="155" y="243" width="130" height="100" mask="url(#nose-mask)"/>
+        <rect x="155" y="243" width="130" height="100" mask="url(#nose-confused)"/>
       </g>
 
       <!-- Ring touch target + shimmer -->
@@ -628,26 +628,12 @@
     /* ── Expression controller ── */
     (function () {
       var faceSvg    = document.getElementById('face-svg');
-      var muzzleOrig = document.getElementById('muzzle');
-      var exprMuzzle = document.getElementById('expr-muzzle');
-      var exprFill   = document.getElementById('expr-muzzle-fill');
 
-      var exprMasks = { sad: 'nose-sad', scared: 'nose-scared', confused: 'nose-confused' };
       var exprClasses = ['expr-happy','expr-sad','expr-scared','expr-confused'];
       var exprTimer = null;
 
       window.setExpression = function (name, durationMs) {
         clearTimeout(exprTimer);
-
-        /* swap muzzle: happy/neutral keeps original nose, others use custom mask */
-        if (exprMasks[name]) {
-          exprFill.setAttribute('mask', 'url(#' + exprMasks[name] + ')');
-          muzzleOrig.style.opacity = '0';
-          exprMuzzle.style.display = '';
-        } else {
-          muzzleOrig.style.opacity = '';
-          exprMuzzle.style.display = 'none';
-        }
 
         /* apply eye expression class */
         exprClasses.forEach(function (c) { faceSvg.classList.remove(c); });
@@ -658,8 +644,6 @@
 
       function clearExpression() {
         exprClasses.forEach(function (c) { faceSvg.classList.remove(c); });
-        muzzleOrig.style.opacity = '';
-        exprMuzzle.style.display = 'none';
       }
 
       window.clearExpression = clearExpression;
