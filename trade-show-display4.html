@@ -123,11 +123,11 @@
     .qr-overlay {
       position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: #000;
       display: flex; flex-direction: column; align-items: center;
-      justify-content: center; gap: 2.5vh; padding: 4vh 6vw;
+      justify-content: center; padding: 3vh 5vw;
       opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 100;
     }
     .qr-overlay.active { opacity: 1; pointer-events: auto; }
-    .qr-overlay .qr-logo { order: 1; height: 7vh; object-fit: contain; }
+    .qr-overlay .qr-logo { order: 1; height: 6vh; object-fit: contain; margin-bottom: 2vh; }
     .qr-headline {
       order: 2; font-family: Arial, sans-serif;
       font-size: clamp(16px,3.2vh,26px); font-weight: 700;
@@ -138,7 +138,7 @@
       font-size: clamp(11px,1.7vh,15px); color: rgba(255,255,255,0.72);
       text-align: center; max-width: 58vw; line-height: 1.6;
     }
-    .qr-overlay .qr-code { order: 4; width: min(18vw,28vh); height: auto; border-radius: 8px; }
+    .qr-overlay .qr-code { order: 4; width: min(14vw,20vh); height: auto; border-radius: 8px; }
     .qr-dismiss { order: 5; font-family: Arial, sans-serif; font-size: clamp(9px,1.3vh,12px); color: rgba(255,255,255,0.22); }
     #qr-bne { background: #005264; }
     #qr-ki  { background: #231d57; }
@@ -223,7 +223,7 @@
     body.qr-split #qr-bne { left: 0; right: 50%; width: 50%; }
     body.qr-split #qr-ki  { left: 50%; right: 0; width: 50%; }
     body.qr-split .qr-overlay { padding: 3vh 3vw; }
-    body.qr-split .qr-overlay .qr-code { width: min(18vw, 28vh); }
+    body.qr-split .qr-overlay .qr-code { width: min(14vw, 20vh); }
     body.qr-split .qr-desc { max-width: 44vw; }
     body.qr-split .qr-headline { max-width: 44vw; }
   </style>
@@ -691,7 +691,7 @@
             ki.classList.add('active');
             document.body.classList.add('qr-split');
             // iOS Safari: set QR code size via JS (min(18vw,28vh) not reliable on iOS)
-            var qrSize = Math.min(window.innerWidth * 0.18, window.innerHeight * 0.28) + 'px';
+            var qrSize = Math.min(window.innerWidth * 0.14, window.innerHeight * 0.20) + 'px';
             [bne, ki].forEach(function(el) {
               var img = el.querySelector('.qr-code'); if (img) img.style.width = qrSize;
             });
