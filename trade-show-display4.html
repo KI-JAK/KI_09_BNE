@@ -683,10 +683,18 @@
             bne.classList.remove('active');
             ki.classList.remove('active');
             document.body.classList.remove('qr-split');
+            [bne, ki].forEach(function(el) {
+              var img = el.querySelector('.qr-code'); if (img) img.style.width = '';
+            });
           } else {
             bne.classList.add('active');
             ki.classList.add('active');
             document.body.classList.add('qr-split');
+            // iOS Safari: set QR code size via JS (min(18vw,28vh) not reliable on iOS)
+            var qrSize = Math.min(window.innerWidth * 0.18, window.innerHeight * 0.28) + 'px';
+            [bne, ki].forEach(function(el) {
+              var img = el.querySelector('.qr-code'); if (img) img.style.width = qrSize;
+            });
           }
         }
       }
