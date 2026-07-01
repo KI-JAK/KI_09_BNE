@@ -121,7 +121,7 @@
 
     /* ── QR overlay ── */
     .qr-overlay {
-      position: fixed; inset: 0; background: #000;
+      position: fixed; top: 0; right: 0; bottom: 0; left: 0; background: #000;
       display: flex; flex-direction: column; align-items: center;
       justify-content: center; gap: 2.5vh; padding: 4vh 6vw;
       opacity: 0; pointer-events: none; transition: opacity 0.5s ease; z-index: 100;
@@ -214,7 +214,6 @@
     #muzzle-sad, #muzzle-scared, #muzzle-confused { opacity: 0; filter: url(#nose-glow); }
     #muzzle-sad rect, #muzzle-scared rect, #muzzle-confused rect { fill: #F26522; transition: fill 1.5s ease; }
     body.charging-active #muzzle-sad rect, body.charging-active #muzzle-scared rect, body.charging-active #muzzle-confused rect { fill: #fff; }
-    body.charging-active #muzzle-sad, body.charging-active #muzzle-scared, body.charging-active #muzzle-confused { filter: drop-shadow(0 0 4px rgba(0,0,0,0.5)); }
     #face-svg.expr-sad #muzzle, #face-svg.expr-scared #muzzle, #face-svg.expr-confused #muzzle { opacity: 0; }
     #face-svg.expr-sad #muzzle-sad       { opacity: 1; }
     #face-svg.expr-scared #muzzle-scared { opacity: 1; }
